@@ -4,7 +4,6 @@ import argparse
 from pickle import FALSE, TRUE
 from statistics import mode
 from tkinter import image_names
-from easydict import EasyDict
 import torch
 import torchvision
 from torch import nn
@@ -25,7 +24,7 @@ from monai.losses import DiceCELoss
 from einops import rearrange
 from models.model_dict import get_model
 from utils.data_us import EchoVideoDataset, JointTransform3D
-from utils.data_us import JointTransform2D, EchoDataset
+# from utils.data_us import JointTransform2D, EchoDataset
 from utils.loss_functions.sam_loss import get_criterion
 from utils.generate_prompts import get_click_prompt
 
@@ -45,7 +44,7 @@ def main():
     parser.add_argument('--n_gpu', type=int, default=1, help='total gpu')
     parser.add_argument('--base_lr', type=float, default=0.0001, help='segmentation network learning rate, 0.005 for SAMed, 0.0001 for MSA') #0.0006
     parser.add_argument('--warmup', action="store_true", help='If activated, warp up the learning from a lower lr to the base_lr') 
-    parser.add_argument('--warmup_period', type=int, default=250, help='Warp up iterations, only valid whrn warmup is activated')
+    parser.add_argument('--warmup_period', type=int, default=250, help='Warp up iterations, only valid when warmup is activated')
     parser.add_argument('--keep_log', action="store_true", help='keep the loss&lr&dice during training or not')
     parser.add_argument('--frame_length', type=int, default=10)
     parser.add_argument('--point_numbers', type=int, default=1)
@@ -128,12 +127,12 @@ def main():
 
     if args.warmup:
         b_lr = args.base_lr / args.warmup_period
-        optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=b_lr, betas=(0.9, 0.999), weight_decay=0.1)
+        optimizer = optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=b_lr, betas=(0.9, 0.999), weight_decay=0.1)
     else:
         b_lr = args.base_lr
-        optimizer = optim.Adam(model.parameters(), lr=args.base_lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=0, amsgrad=False)
+        optimizer = optim.Adam(model.parameters(), lr=b_lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=0, amsgrad=False)
 
-    criterion = get_criterion(modelname=args.modelname, opt=opt)
+    criterion = get_criterion(modelname=args.modelname, opt=opt) # Mask_DC_and_BCE_lossV2
 
     pytorch_total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print("Total_params: {}".format(pytorch_total_params))

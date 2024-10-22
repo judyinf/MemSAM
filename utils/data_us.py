@@ -38,8 +38,8 @@ def load_video_and_mask_file(img_path: str,
             edv, esv, spacing
     '''
     # load video
-    video = np.load(img_path, allow_pickle=True)
-    video = video.swapaxes(0, 1)
+    video = np.load(img_path, allow_pickle=True) # (3,F,H,W)
+    video = video.swapaxes(0, 1) # (F,3,H,W)
     kpts_list = np.load(anno_path, allow_pickle=True)
     ef, edv, esv = kpts_list['ef'], kpts_list['edv'], kpts_list['esv']
 
@@ -51,7 +51,7 @@ def load_video_and_mask_file(img_path: str,
         idx_list.append(int(kpt))
         masks.append(mask_list[kpt])
 
-    # Swap if ED before ES:
+    # Swap if ED before ES: 是否多余？preprocess时已经处理?
     if idx_list[0] > idx_list[-1]:
         idx_list.reverse()
         masks.reverse()
@@ -397,18 +397,18 @@ class JointTransform3D:
         #  gamma enhancement
         if np.random.rand() < self.p_gama:
             c = 1
-            g = np.random.randint(10, 25) / 10.0
+            g = np.random.randint(10, 25) / 10.0 # 1.0~2.4
             # g = 2
             image = (np.power(image / 255, 1.0 / g) / c) * 255
             image = image.astype(np.uint8)
         # transforming to PIL image
         image_list, mask_list = [], []
         for image_ in image:
-            image_ = image_.transpose(1,2,0)
-            image_ = F.to_pil_image(image_)
-            image_list.append(image_)
+            image_ = image_.transpose(1,2,0) # H,W,C
+            image_ = F.to_pil_image(image_) # PIL
+            image_list.append(image_) # index,image
         for mask_ in mask:
-            mask_ = F.to_pil_image(mask_)
+            mask_ = F.to_pil_image(mask_) # H,W
             mask_list.append(mask_)
 
         # image, mask = F.to_pil_image(image), F.to_pil_image(mask)
@@ -498,6 +498,7 @@ class JointTransform3D:
         image = torch.tensor(image)
         mask = torch.tensor(mask)
 
+        mask[mask==255] = 1
         # image = F.to_tensor(image)
 
         # if not self.long_mask:
@@ -831,19 +832,25 @@ class EchoVideoDataset(Dataset):
             img_path=os.path.join(img_path, prefix + '.npy'),
             anno_path=os.path.join(label_path, prefix + '.npz'),
             frame_length=self.frame_length)
-        classes = self.class_dict[sub_path]
-        if classes == 2:
-            mask[mask > 1] = 0
+        # # class的作用是什么？
+        # classes = self.class_dict[sub_path]
+        # if classes == 2:
+        #     mask[mask > 1] = 0
 
         # data aug
         # correct dimensions if needed
         # image, mask = correct_dims(image, mask)
         if self.joint_transform:
             image, mask = self.joint_transform(image, mask)
-            
+
+        # ---------binarize mask-----------------
+        classes = self.class_dict[sub_path]
+        if classes == 2:
+            mask[mask > 1] = 0
         # --------- make the point prompt -----------------
         pts, point_labels = [], []  
         pt = []
+        point_label = []
         if not self.disable_point_prompt:
             if self.prompt == 'click':
                 if 'train' in self.split:
@@ -878,7 +885,7 @@ class EchoVideoDataset(Dataset):
         return {
             'image': image,
             'label': mask,
-            'p_label': point_labels,
+            'p_label': point_label,
             'pt': pt,
             # 'low_mask': low_mask,
             'image_name': filename,

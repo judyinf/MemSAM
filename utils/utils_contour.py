@@ -59,7 +59,7 @@ def interpolate_contour(contour, num_pts, start_pt=None, end_pt=None):
         return interpolate_regularly_spaced_contour(contour, num_pts, closed=False)
 
 def interpolate_regularly_spaced_contour(contour, num_pts, closed=True):
-    """ interpolate a contour to the desired number of points where all points are evenly spaced a long the contour """
+    """ interpolate a contour to the desired number of points where all points are evenly spaced along the contour """
     if closed:
         contour = contour.copy()
         contour = np.vstack([contour, contour[0]])

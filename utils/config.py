@@ -227,8 +227,8 @@ class Config_CAMUS_Video():
     modelname = "SAM"
 
 class Config_CAMUS_Video_Full():
-    data_path = "./dataset/SAMUS/CAMUS_full"  # 
-    data_subpath = "CAMUS_full" 
+    data_path = "./dataset/SAMUS/CAMUS_full"  #
+    data_subpath = "CAMUS_full"
     save_path = "./checkpoints/CAMUS_full/"
     result_path = "./result/CAMUS_full/"
     tensorboard_path = "./tensorboard/CAMUS_full/"
@@ -240,8 +240,8 @@ class Config_CAMUS_Video_Full():
     batch_size = 16                     # batch size (default: 4)
     learning_rate = 1e-4                # iniial learning rate (default: 0.001)
     momentum = 0.9                      # momntum
-    classes = 2                        # thenumber of classes (background + foreground)
-    img_size = 256                      # theinput size of model
+    classes = 2                         # the number of classes (background + foreground)
+    img_size = 256                      # the input size of model
     train_split = "train"   # the file name of training set
     val_split = "val"       # the file name of testing set
     test_split = "test"     # the file name of testing set # HMCQU

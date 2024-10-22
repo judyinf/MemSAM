@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from hausdorff import hausdorff_distance
+# from hausdorff import hausdorff_distance
 
 def dice_coefficient(pred, gt, smooth=1e-5):
     """ computational formula：
